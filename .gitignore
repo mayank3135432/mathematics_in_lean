@@ -6,6 +6,7 @@
 .DS_Store
 stupid.lean
 mapcode.lean
+trash.lean
 mapcodeGCD.lean
 continuity_of_T.lean
 bfs_2.lean
