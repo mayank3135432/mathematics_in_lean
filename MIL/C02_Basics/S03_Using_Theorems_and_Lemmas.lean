@@ -44,7 +44,10 @@ example (x : ℝ) : x ≤ x :=
 
 -- Try this.
 example (h₀ : a ≤ b) (h₁ : b < c) (h₂ : c ≤ d) (h₃ : d < e) : a < e := by
-  sorry
+  have p : a < c := lt_of_le_of_lt h₀ h₁
+  have q : a < d := lt_of_lt_of_le p h₂
+  have r : a < e := lt_trans q h₃
+  exact r
 
 example (h₀ : a ≤ b) (h₁ : b < c) (h₂ : c ≤ d) (h₃ : d < e) : a < e := by
   linarith
@@ -86,21 +89,46 @@ example (h₀ : a ≤ b) (h₁ : c < d) : a + exp c + e < b + exp d + e := by
     apply exp_lt_exp.mpr h₁
   apply le_refl
 
-example (h₀ : d ≤ e) : c + exp (a + d) ≤ c + exp (a + e) := by sorry
+
+
+example (h₀ : d ≤ e) : c + exp (a + d) ≤ c + exp (a + e) := by
+  --have hp : a + d ≤ a + e := linarith [add_lt_add_left h₀ a]
+  have hp : a + d ≤ a + e := add_le_add_left h₀ a
+  rw [← exp_le_exp] at hp
+  exact add_le_add_left hp c
+
+-- much better. use apply, the proof will write itself
+example (h₀ : d ≤ e) : c + exp (a + d) ≤ c + exp (a + e) := by
+  apply add_le_add
+  exact le_refl c
+  -- h2
+  apply exp_le_exp.mpr
+  apply add_le_add_left
+  apply h₀
+
 
 example : (0 : ℝ) < 1 := by norm_num
 
 example (h : a ≤ b) : log (1 + exp a) ≤ log (1 + exp b) := by
-  have h₀ : 0 < 1 + exp a := by sorry
+  have h₀ : 0 < 1 + exp a := by
+    rw [←zero_add 0]
+    apply add_lt_add
+    apply zero_lt_one
+    apply exp_pos
   apply log_le_log h₀
-  sorry
+  apply add_le_add
+  apply le_refl
+  rw [exp_le_exp]
+  exact h
 
 example : 0 ≤ a ^ 2 := by
   -- apply?
   exact sq_nonneg a
 
 example (h : a ≤ b) : c - exp b ≤ c - exp a := by
-  sorry
+  --have hh : exp a ≤ exp b :=
+  rw [←exp_le_exp] at h
+  linarith [h] -- linear ineq in terms of h
 
 example : 2 * a * b ≤ a ^ 2 + b ^ 2 := by
   have h : 0 ≤ a ^ 2 - 2 * a * b + b ^ 2
@@ -120,8 +148,57 @@ example : 2 * a * b ≤ a ^ 2 + b ^ 2 := by
     _ ≥ 0 := by apply pow_two_nonneg
   linarith
 
-example : |a * b| ≤ (a ^ 2 + b ^ 2) / 2 := by
-  sorry
+/- example (a b : ℝ) : a * b ≤ (a ^ 2 + b ^ 2) / 2 := by
+  have pr2g0 : 0 < 2 := by norm_num
+  rw [div_eq_mul_inv]
+  apply (mul_le_mul_left pr2g0).mp
+  -- New goal: 2 * (a * b) ≤ 2 * ((a ^ 2 + b ^ 2) / 2)
+  ring_nf
+  have h : 0 ≤ (a - b) ^ 2 := pow_two_nonneg _
+  linarith -/
 
 #check abs_le'.mpr
+#check mul_le_mul_left
+example : |a * b| ≤ (a ^ 2 + b ^ 2) / 2 := by
+  apply abs_le'.mpr
+  have pr2g0 : 0 < (2 : ℝ) := by linarith
+  #check (mul_le_mul_left pr2g0).mp
 
+  constructor
+  rw [← mul_le_mul_left pr2g0]
+  rw [mul_div, mul_comm 2 (a ^ 2 + b ^ 2)]
+  rw [←mul_div]
+  ring
+
+  have h : 0 ≤ a ^ 2 - 2 * a * b + b ^ 2
+  calc
+    a ^ 2 - 2 * a * b + b ^ 2 = (a - b) ^ 2 := by ring
+    _ ≥ 0 := by apply pow_two_nonneg
+  linarith
+
+  --right
+  rw [← mul_le_mul_left pr2g0]
+  rw [mul_div, mul_comm 2 (a ^ 2 + b ^ 2)]
+  rw [←mul_div]
+  rw [mul_neg]
+  have h : 0 ≤ a ^ 2 + 2 * a * b + b ^ 2
+  calc
+    a ^ 2 + 2 * a * b + b ^ 2 = (a + b) ^ 2 := by ring
+    _ ≥ 0 := by apply pow_two_nonneg
+  linarith
+
+  --apply (mul_le_mul_left pr2g0).mp
+
+
+  --rw [←mul_le_mul_left ]
+
+
+
+
+
+
+
+
+
+
+#check abs_le'.mpr

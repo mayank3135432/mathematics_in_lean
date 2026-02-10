@@ -114,4 +114,3 @@ example : Nat.gcd m n = Nat.gcd n m := by
     apply Nat.gcd_dvd_left
 
 end
-

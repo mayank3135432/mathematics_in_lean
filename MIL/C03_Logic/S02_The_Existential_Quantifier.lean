@@ -46,16 +46,45 @@ section
 variable {f g : ℝ → ℝ}
 
 example (ubf : FnHasUb f) (ubg : FnHasUb g) : FnHasUb fun x ↦ f x + g x := by
+  unfold FnHasUb
   rcases ubf with ⟨a, ubfa⟩
   rcases ubg with ⟨b, ubgb⟩
   use a + b
   apply fnUb_add ubfa ubgb
 
 example (lbf : FnHasLb f) (lbg : FnHasLb g) : FnHasLb fun x ↦ f x + g x := by
-  sorry
+  unfold FnHasLb
+  unfold FnHasLb at lbf
+  unfold FnHasLb at lbg
+  rcases lbf with ⟨a,lbfa⟩
+  rcases lbg with ⟨b,lbgb⟩
+  --unfold FnLb
+  use a + b
+  unfold FnLb
+  dsimp
+  intro x
+  apply add_le_add
+  apply lbfa
+  apply lbgb
 
 example {c : ℝ} (ubf : FnHasUb f) (h : c ≥ 0) : FnHasUb fun x ↦ c * f x := by
-  sorry
+  unfold FnHasUb
+  unfold FnHasUb at ubf
+  rcases ubf with ⟨b, ubfb⟩
+  use c * b
+  unfold FnUb
+  dsimp
+  intro x
+  apply mul_le_mul_of_nonneg_left
+  apply ubfb
+  apply h
+  /- rw [mul_comm]
+  rw [mul_comm c b]
+  apply mul_le_mul
+  apply ubfb
+  apply le_refl
+  apply h -/
+
 
 example : FnHasUb f → FnHasUb g → FnHasUb fun x ↦ f x + g x := by
   rintro ⟨a, ubfa⟩ ⟨b, ubgb⟩
@@ -129,8 +158,11 @@ example (divab : a ∣ b) (divbc : b ∣ c) : a ∣ c := by
   use d * e; ring
 
 example (divab : a ∣ b) (divac : a ∣ c) : a ∣ b + c := by
-  sorry
-
+  rcases divab with ⟨d, beq⟩
+  rcases divac with ⟨e, ceq⟩
+  rw [ceq, beq]
+  use d + e
+  ring
 end
 
 section
@@ -143,7 +175,12 @@ example {c : ℝ} : Surjective fun x ↦ x + c := by
   dsimp; ring
 
 example {c : ℝ} (h : c ≠ 0) : Surjective fun x ↦ c * x := by
-  sorry
+  unfold Surjective
+  intro b
+  dsimp
+  use b / c
+  apply mul_div_cancel₀
+  apply h
 
 example (x y : ℝ) (h : x - y ≠ 0) : (x ^ 2 - y ^ 2) / (x - y) = x + y := by
   field_simp [h]
@@ -163,6 +200,15 @@ variable {α : Type*} {β : Type*} {γ : Type*}
 variable {g : β → γ} {f : α → β}
 
 example (surjg : Surjective g) (surjf : Surjective f) : Surjective fun x ↦ g (f x) := by
-  sorry
+  unfold Surjective
+  unfold Surjective at surjg
+  unfold Surjective at surjf
+  intro q
+  dsimp
+  rcases surjg q with ⟨pre_g, surjgq⟩
+  rcases surjf pre_g with ⟨pre_f, surjfqq⟩
+  use pre_f
+  rw [surjfqq]
+  apply surjgq
 
 end

@@ -22,6 +22,17 @@ example : min a b = min b a := by
     apply min_le_left
 
 example : min a b = min b a := by
+  apply le_antisymm
+
+  apply le_min
+  apply min_le_right
+  apply min_le_left
+
+  apply le_min
+  apply min_le_right
+  apply min_le_left
+
+example : min a b = min b a := by
   have h : ∀ x y : ℝ, min x y ≤ min y x := by
     intro x y
     apply le_min
@@ -31,7 +42,7 @@ example : min a b = min b a := by
   apply h
   apply h
 
-example : min a b = min b a := by
+theorem min_comm_util : min a b = min b a := by
   apply le_antisymm
   repeat
     apply le_min
@@ -39,9 +50,55 @@ example : min a b = min b a := by
     apply min_le_left
 
 example : max a b = max b a := by
-  sorry
+  have h : ∀ x y : ℝ, max x y ≤ max y x := by
+    intro x y
+    apply max_le
+    apply le_max_right
+    apply le_max_left
+  apply le_antisymm
+  apply h
+  apply h
+
+#check min_comm_util
+
+
+  /-
+  have h : ∀ x y z : ℝ, min (min x y) z ≤ min x (min y z) := by
+    sorry
+  apply le_antisymm
+  apply h
+  rw [min_comm_util]
+  rw [min_comm_util (min a b) c, min_comm_util b c]
+  apply h
+  -/
+
+#check (min_le_left a b : min a b ≤ a)
+#check (min_le_right a b : min a b ≤ b)
+#check (le_min : c ≤ a → c ≤ b → c ≤ min a b)
+
+/- example : min (min a b) c = min a (min b c) := by
+  have h : ∀ x y z : ℝ, min (min x y) z ≤ min x (min y z) := by
+    intro x y z
+    by_cases h₁ : x ≤ y
+    by_cases h₂ : y ≤ z
+    refine min_le_min ?_ ?_
+    apply min_le_left -/
 example : min (min a b) c = min a (min b c) := by
-  sorry
+  apply le_antisymm
+  · apply le_min
+    · apply le_trans
+
+
+
+
+
+
+
+
+
+
+
+
 theorem aux : min a b + c ≤ min (a + c) (b + c) := by
   sorry
 example : min a b + c = min (a + c) (b + c) := by
@@ -80,5 +137,3 @@ variable (m n : ℕ)
 example : Nat.gcd m n = Nat.gcd n m := by
   sorry
 end
-
-

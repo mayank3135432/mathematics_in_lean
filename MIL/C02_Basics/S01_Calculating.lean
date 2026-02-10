@@ -1,5 +1,11 @@
 import MIL.Common
 import Mathlib.Data.Real.Basic
+
+theorem good (a b c : ℝ) : a * b * c = b * (a * c) := by
+  rw [mul_comm a b]
+  rw [mul_assoc b a c]
+#print good
+
 -- An example.
 example (a b c : ℝ) : a * b * c = b * (a * c) := by
   rw [mul_comm a b]
@@ -7,10 +13,15 @@ example (a b c : ℝ) : a * b * c = b * (a * c) := by
 
 -- Try these.
 example (a b c : ℝ) : c * b * a = b * (a * c) := by
-  sorry
+  rw [mul_comm c b]
+  rw [mul_assoc]
+  rw [mul_comm a c]
+
 
 example (a b c : ℝ) : a * (b * c) = b * (a * c) := by
-  sorry
+  rw [←mul_assoc a b c]
+  rw [mul_comm a b]
+  rw [mul_assoc]
 
 -- An example.
 example (a b c : ℝ) : a * b * c = b * c * a := by
@@ -20,10 +31,18 @@ example (a b c : ℝ) : a * b * c = b * c * a := by
 /- Try doing the first of these without providing any arguments at all,
    and the second with only one argument. -/
 example (a b c : ℝ) : a * (b * c) = b * (c * a) := by
-  sorry
+  rw [←mul_assoc]
+  rw [mul_comm]
+  rw [←mul_assoc]
+  rw [mul_comm]
 
 example (a b c : ℝ) : a * (b * c) = b * (a * c) := by
-  sorry
+  rw [←mul_assoc]
+  rw [mul_comm]
+  rw [←mul_assoc]
+  rw [mul_comm]
+  rw [mul_comm c a] -- i hope this IS one argument ???
+
 
 -- Using facts from the local context.
 example (a b c d e f : ℝ) (h : a * b = c * d) (h' : e = f) : a * (b * e) = c * (d * f) := by
@@ -33,10 +52,18 @@ example (a b c d e f : ℝ) (h : a * b = c * d) (h' : e = f) : a * (b * e) = c *
   rw [mul_assoc]
 
 example (a b c d e f : ℝ) (h : b * c = e * f) : a * b * c * d = a * e * f * d := by
-  sorry
+  repeat rw [mul_assoc]
+  rw [←mul_assoc b c d]
+  rw [h]
+  rw [mul_assoc e f d]
+
 
 example (a b c d : ℝ) (hyp : c = b * a - d) (hyp' : d = a * b) : c = 0 := by
-  sorry
+  rw [hyp'] at hyp
+  rw [mul_comm] at hyp
+  rw [sub_self] at hyp
+  exact hyp
+
 
 example (a b c d e f : ℝ) (h : a * b = c * d) (h' : e = f) : a * (b * e) = c * (d * f) := by
   rw [h', ← mul_assoc, h, mul_assoc]
@@ -84,11 +111,15 @@ example : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b :=
 example : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b :=
   calc
     (a + b) * (a + b) = a * a + b * a + (a * b + b * b) := by
-      sorry
+      rw [add_mul]
+      rw [mul_add]
+      rw [mul_add, mul_comm, mul_comm b a]
     _ = a * a + (b * a + a * b) + b * b := by
-      sorry
+      repeat rw [add_assoc]
     _ = a * a + 2 * (a * b) + b * b := by
-      sorry
+      rw [mul_comm b a]
+      rw [two_mul]
+
 
 end
 
@@ -97,10 +128,17 @@ section
 variable (a b c d : ℝ)
 
 example : (a + b) * (c + d) = a * c + a * d + b * c + b * d := by
-  sorry
+  rw [add_mul, mul_add b c d, mul_add a c d]
+  repeat rw [add_assoc]
 
 example (a b : ℝ) : (a + b) * (a - b) = a ^ 2 - b ^ 2 := by
-  sorry
+  rw [mul_sub, add_mul, add_mul]
+  rw [← sub_sub]
+  rw [←add_sub]
+  rw [mul_comm b a]
+  rw [sub_self, add_zero]
+  rw [←pow_two, ←pow_two]
+
 
 #check pow_two a
 #check mul_sub a b c
@@ -123,6 +161,7 @@ example (a b c d : ℝ) (hyp : c = d * a + b) (hyp' : b = a * d) : c = 2 * a * d
   rw [← mul_assoc 2 a d] at hyp
   exact hyp
 
+-- OMG cheat codessss
 example : c * b * a = b * (a * c) := by
   ring
 
@@ -139,5 +178,5 @@ example (hyp : c = d * a + b) (hyp' : b = a * d) : c = 2 * a * d := by
 end
 
 example (a b c : ℕ) (h : a + b = c) : (a + b) * (a + b) = a * c + b * c := by
-  nth_rw 2 [h]
+  nth_rw 2 [h] --ahh same pattern handling beehive
   rw [add_mul]

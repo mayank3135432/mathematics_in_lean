@@ -36,23 +36,125 @@ variable (x y z : α)
 #check (sup_le : x ≤ z → y ≤ z → x ⊔ y ≤ z)
 
 example : x ⊓ y = y ⊓ x := by
-  sorry
+  apply le_antisymm
+
+  apply le_inf
+  apply inf_le_right
+  apply inf_le_left
+
+  apply le_inf
+  apply inf_le_right
+  apply inf_le_left
+
+
+
+
+
+example : x ⊓ y ⊓ z ≤ x ⊓ (y ⊓ z) := by
+  have h1 : x ⊓ y ⊓ z ≤ x := by
+    have h3 : x ⊓ y ⊓ z ≤ x ⊓ y := by
+      apply inf_le_left
+    have h4 : x ⊓ y ≤ x := by
+      apply inf_le_left
+    exact le_trans h3 h4
+  have h2 : x ⊓ y ⊓ z ≤ (y ⊓ z) := by
+    have hz : x ⊓ y ⊓ z ≤ z := by
+      apply inf_le_right
+    have hy : x ⊓ y ⊓ z ≤ y := by
+      have hyx : x ⊓ y ⊓ z ≤ x ⊓ y := by
+        apply inf_le_left
+      have hxy_e : x ⊓ y ≤ y := by
+        apply inf_le_right
+      exact le_trans hyx hxy_e
+    exact le_inf hy hz
+  apply le_inf h1 h2
+
 
 example : x ⊓ y ⊓ z = x ⊓ (y ⊓ z) := by
-  sorry
+  apply le_antisymm
+  apply le_inf
+  trans x ⊓ y
+  apply inf_le_left
+  apply inf_le_left
+  apply le_inf
+  trans x ⊓ y
+  apply inf_le_left
+  apply inf_le_right
+  apply inf_le_right
+  apply le_inf
+  apply le_inf
+  apply inf_le_left
+  trans y ⊓ z
+  apply inf_le_right
+  apply inf_le_left
+  trans y ⊓ z
+  apply inf_le_right
+  apply inf_le_right
+
+
+#check x ⊔ y
+#check (le_sup_left : x ≤ x ⊔ y)
+#check (le_sup_right : y ≤ x ⊔ y)
+#check (sup_le : x ≤ z → y ≤ z → x ⊔ y ≤ z)
 
 example : x ⊔ y = y ⊔ x := by
-  sorry
-
+  apply le_antisymm
+  apply sup_le
+  apply le_sup_right
+  apply le_sup_left
+  apply sup_le
+  apply le_sup_right
+  apply le_sup_left
+-- Use trans tactic
 example : x ⊔ y ⊔ z = x ⊔ (y ⊔ z) := by
-  sorry
+  apply le_antisymm
+  apply sup_le
+  apply sup_le
+  apply le_sup_left
+  trans y ⊔ z
+  apply le_sup_left
+  apply le_sup_right
+  trans y ⊔ z
+  apply le_sup_right
+  apply le_sup_right
+  apply sup_le
+  trans x ⊔ y
+  apply le_sup_left
+  apply le_sup_left
+  apply sup_le
+  trans x ⊔ y
+  apply le_sup_right
+  apply le_sup_left
+  apply le_sup_right
+
+
+#check x ⊓ y
+#check (inf_le_left : x ⊓ y ≤ x)
+#check (inf_le_right : x ⊓ y ≤ y)
+#check (le_inf : z ≤ x → z ≤ y → z ≤ x ⊓ y)
+#check x ⊔ y
+#check (le_sup_left : x ≤ x ⊔ y)
+#check (le_sup_right : y ≤ x ⊔ y)
+#check (sup_le : x ≤ z → y ≤ z → x ⊔ y ≤ z)
 
 theorem absorb1 : x ⊓ (x ⊔ y) = x := by
-  sorry
+  apply le_antisymm
+  apply inf_le_left
+  apply le_inf
+  apply le_refl
+  apply le_sup_left
+
+/-
+⊓   -- precedence ~70
+⊔   -- precedence ~65
+-/
 
 theorem absorb2 : x ⊔ x ⊓ y = x := by
-  sorry
-
+  apply le_antisymm
+  apply sup_le
+  apply le_refl
+  apply inf_le_left
+  apply le_sup_left
 end
 
 section
@@ -109,4 +211,3 @@ example (x y : X) : 0 ≤ dist x y := by
   sorry
 
 end
-
