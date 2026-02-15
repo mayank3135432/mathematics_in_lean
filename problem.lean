@@ -1,3 +1,14 @@
+/-
+Problem from "Formalizing IMO Problems and Solutions in Isabelle/HOL" Section 3.1
+https://arxiv.org/abs/2010.16015
+Taken From IMO 2006 shortlist A2 (Algebra)
+Informal proof at https://www.imo-official.org/problems/IMO2006SL.pdf
+-/
+/-
+mostly done as of 2026-02-15
+Algebric manipulation remains
+ -/
+
 import MIL.Common
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Nat.Prime.Basic
@@ -10,76 +21,7 @@ open BigOperators
 #eval ∑ i in Finset.range 5, i   -- 0 + 1 + 2 + 3 + 4 = 10
 #eval ∑ i in Finset.Icc 1 (3), i
 
-#check Nat.strong_induction_on
-
-
-example (a : ℝ) (b : ℝ) (c : ℝ) (h1 : a = b) (h2 : c ≠ 0) : c * a = c * b := by
-  exact congrArg (HMul.hMul c) h1
-
-example (a b c d : ℝ) (h1 : a = b) (h2 : c = d) :  a + c = b + d := by
-  exact Mathlib.Tactic.LinearCombination.add_pf h1 h2
-
-theorem IneedHelp (a b : ℝ) : a + -1*b = a - b := by
-  ring
-
-example (b : ℝ) (h1 : b ≠ 0): b / b = 1 := by
-  apply (div_eq_one_iff_eq h1).mpr rfl
-
-
-lemma nooo {m : ℕ} : insert (m + 1) (Finset.Icc 0 m) = Finset.Icc 0 (m + 1) := by
-  apply Nat.Icc_insert_succ_right ?h
-  exact Nat.le_add_left 0 (m + 1)
-
-#check Nat.Icc_succ_left
-
-
-
-example (a b c d : ℕ) (h1 : a ≤ b + 1) (h2 : a ≠ b + 1) : a ≤ b := by
-  refine Nat.le_of_lt_succ ?_
-  exact Nat.lt_of_le_of_ne h1 h2
-
-example (a b c d : ℕ) (h1 : a ≤ b) : a ≤ b + 1 := by
-  exact Nat.le_add_right_of_le h1
-
-
-
-
-theorem helper1 : (Finset.Icc 0 (m)) ∪ ({m + 1} : Finset ℕ) = (Finset.Icc 0 (m + 1)) := by
-  refine Eq.symm ((fun {α} {s₁ s₂} => Finset.ext_iff.mpr) ?_)
-  intro a
-  apply Iff.intro
-  intro hpre
-  apply Finset.mem_union.mpr
-  rw [or_comm]
-  apply or_iff_not_imp_left.mpr
-  intro hpre2
-
-  #check Finset.mem_Icc
-  rw [Finset.mem_Icc] at hpre
-  rw [Finset.mem_Icc]
-  apply And.intro
-  exact hpre.left
-  simp at hpre2
-  refine Nat.le_of_lt_succ ?_
-  exact Nat.lt_of_le_of_ne hpre.right hpre2
-
-  intro hpre
-  rw [Finset.mem_Icc]
-  apply Finset.mem_union.mp at hpre
-  rcases hpre with hp | hq
-  rw [Finset.mem_Icc] at hp
-  apply And.intro
-  exact hp.left
-  exact Nat.le_add_right_of_le hp.right
-
-  simp at hq
-  apply And.intro
-  exact Nat.zero_le a
-  exact Nat.le_of_eq hq
-
-
-
-
+-- a helper funvtion for the below proof
 theorem helper_split_sum (n m : ℕ) (h1 : 0 ≤ n) (h2 : n ≤ m) : (Finset.Icc 0 n) ∪ (Finset.Icc (n + 1) (m)) = (Finset.Icc 0 m) := by
   refine Eq.symm ((fun {α} {s₁ s₂} => Finset.ext_iff.mpr) ?_)
   intro a
@@ -130,7 +72,7 @@ example (m : ℕ) (h1 : m ≥ 1) : ¬ m ≤ m - 1 := by
   exact h1
 
 
-
+-- a helper funvtion for the below proof, for change of variable of summation
 theorem offoohelpa_ultima (hm : m ≥ 1) (f : ℕ → ℝ) : ∑ x ∈ (Finset.Icc 1 m), f x = ∑ k ∈ (Finset.Icc 0 (m - 1)), f (k + 1) := by
   have := Finset.sum_attach (Finset.Icc 1 m) f
   rw [← this]
@@ -190,7 +132,7 @@ theorem offoohelpa_ultima (hm : m ≥ 1) (f : ℕ → ℝ) : ∑ x ∈ (Finset.I
 
 
 
-theorem Problem (a : ℕ → ℝ) (h0 : a 0 = - 1) (h : ∀ n ≥ 1, ∑ k in Finset.Icc 0 n, (a (n - k))/(k + 1) = 0) : ∀ n ≥ 1, a (n) ≥ 0 := by
+theorem imo2006_shortlist_A2 (a : ℕ → ℝ) (h0 : a 0 = - 1) (h : ∀ n ≥ 1, ∑ k in Finset.Icc 0 n, (a (n - k))/(k + 1) = 0) : ∀ n ≥ 1, a (n) > 0 := by
   intro n hn
 
   induction' n using Nat.strong_induction_on with num ih
@@ -276,16 +218,53 @@ theorem Problem (a : ℕ → ℝ) (h0 : a 0 = - 1) (h : ∀ n ≥ 1, ∑ k in Fi
       exact h2
 
     --have helper : (m + 1) ≠ 0 := by exact Nat.not_eq_zero_of_lt hn
-    have hfin : a (m + 1) = ∑ k in Finset.Icc 0 m, (a (m - k))/((k + 1)*(k + 2)) := by
+    have hfin : a (m + 1) = (1/(m + 2)) * ∑ k in Finset.Icc 0 (m - 1), (a (m - k))/((k + 1)*(k + 2)) := by -- stupid mistake, 0 to m-1, NOT 0 to m
       have temp1 : (-1) * (m + 1) / (m + 2) * (a 0 / (m + 1)+ ∑ k in Finset.Icc 0 (m - 1), a (m - k) / (k + 1)) = (-1) * (m + 1)/(m + 2) * 0 := congrArg (fun x : ℝ => (-1) * (m + 1)/(m + 2) * x) hdope2
       rw [mul_zero] at temp1
       have hadded_term := Mathlib.Tactic.LinearCombination.add_pf hdope1 temp1
-
+      -- pure algebric manipulation
+      simp at hadded_term
+      simp [mul_add, Finset.mul_sum] at hadded_term
+      simp [h0] at hadded_term
+      --field_simp at hadded_tern
+      have lgm : ((-1 : ℝ) + -↑m) / (↑m + 2) * (-1 / (↑m + 1)) = 1 / (↑m + 2) := by sorry
       sorry
+    #check Nat.cast_le
 
-    sorry
+    have hpos1 : (1 : ℝ) / (↑m + 2) > 0 := by
+      apply div_pos
+      simp
+      have : 3 ≤ m + 2 := by
+        exact Nat.le_add_of_sub_le hmas
+      exact gt_of_ge_of_gt (mod_cast this) zero_lt_three -- mod_cast to cast as ℝ instead of ℕ
+    have hpos2 : ∀ k : ℕ , k ∈ Finset.Icc 0 (m - 1) → 0 < a (m - k) := by
+      intro knum hknum
+      simp at hknum
+      have m_minus_k_pos : m - knum ≥ 1 := by
+        apply Nat.le_sub_of_add_le
+        have := Nat.add_le_add_right hknum 1
+        simp
+        rw [Nat.sub_add_cancel hmas] at this
+        rw [add_comm]
+        exact this
+      exact ih (m - knum) (Nat.sub_lt_succ m knum) m_minus_k_pos
 
-    -- case m=1, manual computaion
+    have hpos3 : ∀ k : ℕ , k ∈ Finset.Icc 0 (m - 1) → 0 < (k + 1) * (k + 2) := by
+      intro knum hknum
+      exact Nat.zero_lt_succ (((knum + 1).mul (knum + 1)).add knum)
+    have hpos4 : ∀ k ∈ Finset.Icc 0 (m - 1), 0 < a (m - k) / ((↑k + 1) * (↑k + 2)) := by
+      intro knum hknum
+      apply div_pos
+      exact hpos2 knum hknum
+      exact (mod_cast hpos3 knum hknum)
+    rw [hfin]
+    apply mul_pos
+    apply hpos1
+    apply Finset.sum_pos
+    exact hpos4
+    simp -- I am not sure how simp did it but okay
+    -- case neg
+    -- ie case of m=1, manual computaion
     have : m = 0 := by
       exact Nat.eq_zero_of_not_pos hmas
     rw [this]
@@ -299,3 +278,36 @@ theorem Problem (a : ℕ → ℝ) (h0 : a 0 = - 1) (h : ∀ n ≥ 1, ∑ k in Fi
     ring_nf at lg
     by_contra
     linarith
+
+example ( a b : ℝ) : a ≤ b ↔ b ≥ a := by
+  exact ge_iff_le
+
+example {a b : ℝ} : a > 0 → b > 0 → a / b > 0 := by
+  intro a_1 a_2
+  exact div_pos a_1 a_2
+
+example {a b : ℝ} : a < b → b ≤ c → a < c := by
+  intro h1 h2
+  exact gt_of_ge_of_gt h2 h1
+
+example {a b : ℝ} : a < b → b ≤ c → a < c := by
+  intro h1 h2
+  exact gt_of_ge_of_gt h2 h1
+
+
+example : m ≥ 1 → m - 1 + 1 = m := by
+  intro ha
+  exact Nat.sub_add_cancel ha
+
+example {a b : ℝ} : 0 < a → 0 < b → 0 < a / b := by
+  intro h1 h2
+  exact div_pos h1 h2
+
+example {a b : ℝ} : 0 < a → 0 < b → 0 < a * b := by
+  intro h1 h2
+  exact mul_pos h1 h2
+
+
+example (a b : ℝ) : a < b → a ≠ b := by
+  intro h
+  exact ne_of_lt h
