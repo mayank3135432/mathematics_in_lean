@@ -16,7 +16,10 @@ import Mathlib.Data.Nat.Prime.Basic
 
 open BigOperators
 
+#check Nat.cast_le
 #check Finset.induction
+#check Finset.sum_add_eq_sum_add_of_exists
+#check Finset.sum_add_distrib
 
 #eval ∑ i in Finset.range 5, i   -- 0 + 1 + 2 + 3 + 4 = 10
 #eval ∑ i in Finset.Icc 1 (3), i
@@ -227,9 +230,30 @@ theorem imo2006_shortlist_A2 (a : ℕ → ℝ) (h0 : a 0 = - 1) (h : ∀ n ≥ 1
       simp [mul_add, Finset.mul_sum] at hadded_term
       simp [h0] at hadded_term
       --field_simp at hadded_tern
-      have lgm : ((-1 : ℝ) + -↑m) / (↑m + 2) * (-1 / (↑m + 1)) = 1 / (↑m + 2) := by sorry
+      have : ((-1 : ℝ) + -↑m) / (↑m + 2) * (-1 / (↑m + 1)) = 1 / (↑m + 2) := by
+        have : ((-1 : ℝ) + -↑m) = - (↑m + 1) := by
+          simp
+        rw [this]
+        have : ((-1 : ℝ) / (↑m + 1)) = - (1 / (↑m + 1)) := by
+          ring
+        rw [this]
+        rw [←neg_mul_comm]
+        have : (-(↑m + (1 : ℝ)) / (↑m + 2)) =  - ((↑m + (1 : ℝ)) / (↑m + 2)) := by
+          ring
+        rw [this]
+        rw [InvolutiveNeg.neg_neg]
+        field_simp
+        rw [mul_comm]
+      rw [this] at hadded_term
+      ring_nf at hadded_term
+      field_simp at hadded_term
+      rw [add_assoc] at hadded_term
+
+      -- now to add the summation terms
+      rw [←Finset.sum_add_distrib] at hadded_term
+
+      -- factoring is left to do
       sorry
-    #check Nat.cast_le
 
     have hpos1 : (1 : ℝ) / (↑m + 2) > 0 := by
       apply div_pos
@@ -307,7 +331,17 @@ example {a b : ℝ} : 0 < a → 0 < b → 0 < a * b := by
   intro h1 h2
   exact mul_pos h1 h2
 
+example {a : ℝ} : a = 1*a := by
+  exact Eq.symm (one_mul a)
 
-example (a b : ℝ) : a < b → a ≠ b := by
-  intro h
-  exact ne_of_lt h
+example {a b : ℝ} : a * (-b) = - a*b := by
+  exact Eq.symm (neg_mul_comm a b)
+
+example {a b : ℝ} (h : b ≠ 0) : (-a/b) = - a/b := by
+  exact rfl
+
+example {a : ℝ} : a =  - - a := by
+  exact Eq.symm (InvolutiveNeg.neg_neg a)
+
+example {a b c: ℝ} (h : b ≠ 0 ∧ c ≠ 0) : (a/b)*(1/c) = (a/c)/b := by
+  ring_nf

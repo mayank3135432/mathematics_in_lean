@@ -1,7 +1,13 @@
+/-
+Just a file tp practice using Finset
+ -/
+
+
+
 import Mathlib.Data.Nat.GCD.Basic
 import MIL.Common
 
-variable {α : Type*} (s : Finset ℕ) (f : ℕ → ℝ) (n : ℕ)
+variable {α : Type*} (s : Finset ℕ) (f g : ℕ → ℝ) (n : ℕ)
 
 #check Finset.sum s f
 #check Finset.prod s f
@@ -97,6 +103,10 @@ theorem offoohelpa (hm : m ≥ 1) : ∑ x ∈ (Finset.Icc 1 m).attach, f x = ∑
   have := i1.property
   simp at this
   rw [Nat.sub_add_cancel this.left]
+
+
+
+
 
 
 theorem death (hm : m ≥ 1) (ss : Finset ℕ) : ∑ x ∈ ss.attach, f x = ∑ x ∈ ss, f x := by
@@ -221,3 +231,25 @@ theorem offoohelp (hm : m ≥ 1) : ∑ x ∈ (Finset.Icc 1 m).attach, f x = ∑ 
   }
   apply sum_equiv
  -/
+
+
+
+
+/-
+hpos2 : ∀ k ∈ Finset.Icc 0 (m - 1), 0 < a (m - k)
+hpos3 : ∀ k ∈ Finset.Icc 0 (m - 1), 0 < (k + 1) * (k + 2)
+hpos4 : ∀ k ∈ Finset.Icc 0 (m - 1), 0 < a (m - k) / ((↑k + 1) * (↑k + 2))
+⊢ 0 < ∑ k ∈ Finset.Icc 0 (m - 1), a (m - k) / ((↑k + 1) * (↑k + 2))
+
+-/
+
+example (h1 : ∀ k ∈ s, f k > 0) : ∑ k ∈ s, f k > 0 := by
+  apply Finset.sum_pos
+  exact h1
+  sorry
+
+example (h1 : ∀ k ∈ s, f k > 0) : ∑ k ∈ s, f k + ∑ k ∈ s, g k = ∑ k ∈ s, (f k) + (g k)  := by
+  refine sum_add_eq_sum_add_of_exists ?a ?ha ?h
+  use n
+  sorry
+  sorry
