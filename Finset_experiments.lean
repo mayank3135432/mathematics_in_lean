@@ -253,3 +253,6 @@ example (h1 : ∀ k ∈ s, f k > 0) : ∑ k ∈ s, f k + ∑ k ∈ s, g k = ∑ 
   use n
   sorry
   sorry
+
+example (a b c : ℝ) (hpos : a > 0 ∧ b > 0 ∧ c > 0) (h : a < b*c) : a < b ∧ a < c := by
+  apply?
