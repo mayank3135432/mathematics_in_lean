@@ -26,6 +26,28 @@ def argminFinset [DecidableEq α] [LinearOrder α] (s : Finset α) (hne : s.None
     exact list_ne nn
   exact Option.get (List.argmin f ((s.sort (fun a b => a ≤ b)))) (Option.ne_none_iff_isSome.mp this)
 
+theorem hargminFinset [DecidableEq α] [LinearOrder α] (s : Finset α) (hne : s.Nonempty) (f : α → ℕ) : ∀ xn ∈ s, f (argminFinset s hne f) ≤ f xn:= by
+  intro x hx
+  unfold argminFinset
+  simp
+  rw [←Finset.mem_sort (fun a b => a ≤ b)] at hx
+  rw [←not_lt]
+
+  apply List.not_lt_of_mem_argmin hx
+  exact
+    Option.get_mem
+      (argminFinset.proof_8 s f (argminFinset.proof_4 s f (argminFinset.proof_3 s hne))) -- thx `apply?`
+
+theorem h2argminFinset [DecidableEq α] [LinearOrder α] (s : Finset α) (hne : s.Nonempty) (f : α → ℕ) : (argminFinset s hne f) ∈ s:= by
+  unfold argminFinset
+  simp
+  rw [←Finset.mem_sort (fun a b => a ≤ b)]
+  apply List.argmin_mem (β := ℕ) (f := f)
+  exact
+    Option.get_mem
+      (argminFinset.proof_8 s f (argminFinset.proof_4 s f (argminFinset.proof_3 s hne))) -- thanks apply?
+
+
 -- The generic Mapcode (verified) structure, extending MapCodeUnverified [26, 27].
 -- It includes components for formal verification: specification, bound function, invariant, and their proofs.
 structure Mapcode (I : Type u) (A : Type v) (X : Type w) [DecidableEq X] where
@@ -145,7 +167,7 @@ def iFi : (X i) → (X i) :=
         have := ((x.Unvisisted).nonempty_iff_ne_empty).mpr h
         exact Finset.Nonempty.to_subtype this
       --let w := (x.Unvisisted).fold (fun a b => if x.distances a ≤ x.distances b then a else b) hne.some
-      have ww := x.Unvisisted.min' (((x.Unvisisted).nonempty_iff_ne_empty).mpr h)
+      have ww := argminFinset (x.Unvisisted) (((x.Unvisisted).nonempty_iff_ne_empty).mpr h) (x.distances)
       have U' := x.Unvisisted.erase ww
       have d' := update i.Gr x.distances (U'.image Subtype.val) (ww)
       exact {
@@ -153,30 +175,136 @@ def iFi : (X i) → (X i) :=
         distances := d'
       }
 
-/-
-def argminFinset
-  (s : Finset α)
-  (hne : s.Nonempty)
-  (f : α → ℕ)
-  : α := s.fold (fun a b => if f a ≤ f b then a else b) hne.some
-. -/
-#check Finset.fold
-#check Finset.toList
-#check Finset.empty_toList
-/-
-def argminFinset (s : Finset α) (hne : s.Nonempty) (f : α → ℕ) : α := by
-  classical
-  have com : Std.Commutative fun a b => if f a ≤ f b then a else b := by
-    constructor
-    intro a b
-    by_cases hmas : f a = f b
+def iσi : (X i) → ℕ := by
+  intro xi
+  exact xi.Unvisisted.card
 
-    sorry
-  have ass :  Std.Associative fun a b => if f a ≤ f b then a else b := by
-    sorry
+#check Finset.card_lt_card
+
+def iwfi : ∀ x : (X i), (iFi x ≠ x) → iσi (iFi x) < iσi x := by
+  intro x
+  intro hneq
+  --unfold iFi
+  unfold iσi
+  unfold iFi
+  simp
+  by_cases hn : x.Unvisisted = ∅
+  simp [hn] -- this will resolve the if-else
+  unfold iFi at hneq
+  simp [hn] at hneq -- this will resolve the if-else
+
+  simp [hn] -- this will resolve the if-else
+  apply Finset.card_lt_card
+  refine Finset.erase_ssubset ?_ -- thank you `apply` <3
+  exact h2argminFinset x.Unvisisted (Finset.nonempty_iff_ne_empty.mpr hn) x.distances
+
+
+def iθi (x : X i) : (A i) :=
+  if heq : x = iFi x then iπi x
+  else iθi (iFi x)
+  termination_by (iσi x)
+  decreasing_by
+    simp
+    apply iwfi
+    simp
+    exact fun a => heq (id (Eq.symm a))
+
+def ifi (i : I) : (A i) := iθi (iρi i)
+
+
+-- please split this up and redo later
+def invariant :
+    (∀ i : I, iθi (iρi i) = (fun _ => ifi i) i)
+    ∧ (∀ x : X i, iθi (iFi x) = iθi x)
+    ∧ (∀ x : X i, (iFi x = x) → iθi x = iπi x) := by
+  constructor
+  intro ii
+  rfl
+  constructor
+  intro x
+  unfold iθi
+  by_cases hh : x = iFi x
+  have heq2 : iFi x = iFi (iFi x) := by
+    exact congrArg iFi hh
+  rw [dif_pos]
+  rw [dif_pos]
+  nth_rewrite 2 [hh]
+  rfl
+  nth_rewrite 1 [hh]
+  rfl
+  nth_rewrite 1 [hh]
+  rfl
+  split_ifs with hcond
+  unfold iθi
+  split_ifs
+  rfl
+  unfold iθi
+
+  /- split
+  unfold iθi
+  split_ifs
+  rfl
+ -/
+
+  -- screw my life, gotta do induction
+
+  sorry
+  intro x hx
+  unfold iθi
+  split_ifs with hcond
+  rfl
+  have := hcond (Eq.symm hx)
+  cases this
+
+  --unfold iθi
+
+  /-
   refine
-    s.fold
-      (fun a b => if f a ≤ f b then a else b)
-      ?start
-      ?proof
+    dite_congr ?_ (fun h => congrArg iπi (id (Eq.symm hh))) fun h => congrArg iθi (id (Eq.symm heq))
+  exact Eq.propIntro (fun a => hh) (congrArg iFi)
+  refine dite_congr ?_ (fun h => congrArg iπi (id (Eq.symm h))) ?_
    -/
+
+def invariant_first : (∀ i : I, iθi (iρi i) = (fun _ => ifi i) i) := by
+  intro ii
+  rfl
+
+
+def invariant_end : (∀ x : X i, (iFi x = x) → iθi x = iπi x) := by
+  intro x hx
+  unfold iθi
+  split_ifs with hcond
+  rfl
+  have := hcond (Eq.symm hx)
+  cases this
+
+def invariant_mid : (∀ x : X i, iθi (iFi x) = iθi x) := by
+  intro x
+  nth_rewrite 2 [iθi]
+  split_ifs with hcond
+  rw [← hcond]
+  nth_rewrite 1 [iθi]
+  apply if_pos hcond
+  rfl
+
+
+def MyMapcode : Mapcode (I) (A i) (X i) := {
+  ρ := iρi
+  F := iFi
+  π := iπi
+  f := fun _ => ifi i
+  σ := iσi
+  θ := iθi
+  wf := iwfi
+  invariant := sorry
+}
+
+
+
+def setgen (F : (X i) → (X i)) (y : X i) : Finset (X i) :=
+  if h : y = F y then {y}
+  else {y} ∪ setgen F (F y)
+  termination_by (iσi y)
+  decreasing_by
+    simp
+    apply iwfi
