@@ -138,7 +138,7 @@ def iρi : I → (X i) := by
     Unvisisted := i.Gr.V.attach
     distances := by
       intro xx
-      exact if xx = i.start then 0 else 99
+      exact if xx = i.start then 0 else 9999
   }
   exact initX
 
@@ -212,61 +212,8 @@ def iθi (x : X i) : (A i) :=
 def ifi (i : I) : (A i) := iθi (iρi i)
 
 
--- please split this up and redo later
-def invariant :
-    (∀ i : I, iθi (iρi i) = (fun _ => ifi i) i)
-    ∧ (∀ x : X i, iθi (iFi x) = iθi x)
-    ∧ (∀ x : X i, (iFi x = x) → iθi x = iπi x) := by
-  constructor
-  intro ii
-  rfl
-  constructor
-  intro x
-  unfold iθi
-  by_cases hh : x = iFi x
-  have heq2 : iFi x = iFi (iFi x) := by
-    exact congrArg iFi hh
-  rw [dif_pos]
-  rw [dif_pos]
-  nth_rewrite 2 [hh]
-  rfl
-  nth_rewrite 1 [hh]
-  rfl
-  nth_rewrite 1 [hh]
-  rfl
-  split_ifs with hcond
-  unfold iθi
-  split_ifs
-  rfl
-  unfold iθi
-
-  /- split
-  unfold iθi
-  split_ifs
-  rfl
- -/
-
-  -- screw my life, gotta do induction
-
-  sorry
-  intro x hx
-  unfold iθi
-  split_ifs with hcond
-  rfl
-  have := hcond (Eq.symm hx)
-  cases this
-
-  --unfold iθi
-
-  /-
-  refine
-    dite_congr ?_ (fun h => congrArg iπi (id (Eq.symm hh))) fun h => congrArg iθi (id (Eq.symm heq))
-  exact Eq.propIntro (fun a => hh) (congrArg iFi)
-  refine dite_congr ?_ (fun h => congrArg iπi (id (Eq.symm h))) ?_
-   -/
-
-def invariant_first : (∀ i : I, iθi (iρi i) = (fun _ => ifi i) i) := by
-  intro ii
+def invariant_first : (∀ ii : I, iθi (iρi i) = (fun _ => ifi i) ii) := by
+  intro
   rfl
 
 
@@ -287,6 +234,15 @@ def invariant_mid : (∀ x : X i, iθi (iFi x) = iθi x) := by
   apply if_pos hcond
   rfl
 
+def iinvarianti :
+    (∀ ii : I, iθi (iρi i) = (fun _ => ifi i) ii)
+    ∧ (∀ x : X i, iθi (iFi x) = iθi x)
+    ∧ (∀ x : X i, (iFi x = x) → iθi x = iπi x) := by
+  constructor
+  exact invariant_first
+  constructor
+  exact invariant_mid
+  exact invariant_end
 
 def MyMapcode : Mapcode (I) (A i) (X i) := {
   ρ := iρi
@@ -296,15 +252,97 @@ def MyMapcode : Mapcode (I) (A i) (X i) := {
   σ := iσi
   θ := iθi
   wf := iwfi
-  invariant := sorry
+  invariant := iinvarianti
+}
+--def generate
+/-
+def exampleGraph : Graph := {
+  V := {1,2,3,4,5,6}
+  E := {
+    ⟨(1,4), by constructor <;> simp⟩,
+    ⟨(1,2), by constructor <;> simp⟩,
+    ⟨(2,4), by constructor <;> simp⟩,
+    ⟨(2,5), by constructor <;> simp⟩,
+    ⟨(4,6), by constructor <;> simp⟩,
+    ⟨(4,5), by constructor <;> simp⟩,
+    ⟨(5,6), by constructor <;> simp⟩,
+    ⟨(6,3), by constructor <;> simp⟩,
+    ⟨(5,3), by constructor <;> simp⟩
+    }
+  wt := fun _ => 1
+}
+ -/
+
+def exampleGraph : Graph := {
+  V := {1,2,3,4}
+  E := {
+    ⟨(1,2), by constructor <;> simp⟩,
+    ⟨(1,3), by constructor <;> simp⟩,
+    ⟨(1,4), by constructor <;> simp⟩,
+    ⟨(2,3), by constructor <;> simp⟩,
+    ⟨(2,4), by constructor <;> simp⟩,
+    ⟨(3,4), by constructor <;> simp⟩
+    }
+  wt := fun _ => 1
+}
+def examplei : I := {
+  Gr := exampleGraph
+  start := ⟨1, by constructor ⟩
+}
+--def generateMapCode (iii : I) : Mapcode (I) (A i) (X i) :=
+
+def anss : { a : (A examplei) // a = MyMapcode.f examplei } := MyMapcode.runWithProof examplei
+
+#check anss.val.distances
+#check List.Mem
+def anson : ℕ := anss.val.distances ⟨2, by constructor <;> constructor ⟩
+
+#eval anson
+#eval anss.val.distances ⟨1, by constructor ⟩
+
+
+def exampleGraph2 : Graph := {
+  V := {1,2,3,4,5,6}
+c
+    ⟨(1,2), by constructor <;> simp⟩,
+    ⟨(2,4), by constructor <;> simp⟩,
+    ⟨(2,5), by constructor <;> simp⟩,
+    ⟨(4,6), by constructor <;> simp⟩,
+    ⟨(4,5), by constructor <;> simp⟩,
+    ⟨(5,6), by constructor <;> simp⟩,
+    ⟨(6,3), by constructor <;> simp⟩,
+    ⟨(5,3), by constructor <;> simp⟩
+    }
+  wt := fun p =>
+    match p with
+    | (⟨1, by simp⟩, ⟨2, by simp⟩) => 2
+    | (⟨1, _⟩, ⟨4, _⟩) => 8
+    | (⟨2, _⟩, ⟨4, _⟩) => 5
+    | (⟨2, _⟩, ⟨5, _⟩) => 6
+    | (⟨4, _⟩, ⟨5, _⟩) => 3
+    | (⟨4, _⟩, ⟨6, _⟩) => 2
+    | (⟨5, _⟩, ⟨6, _⟩) => 1
+    | (⟨3, _⟩, ⟨5, _⟩) => 9
+    | (⟨3, _⟩, ⟨6, _⟩) => 3
+
+    | (⟨2, _⟩, ⟨1, _⟩) => 2
+    | (⟨4, _⟩, ⟨1, _⟩) => 8
+    | (⟨4, _⟩, ⟨2, _⟩) => 5
+    | (⟨5, _⟩, ⟨2, _⟩) => 6
+    | (⟨5, _⟩, ⟨4, _⟩) => 3
+    | (⟨6, _⟩, ⟨4, _⟩) => 2
+    | (⟨6, _⟩, ⟨5, _⟩) => 1
+    | (⟨5, _⟩, ⟨3, _⟩) => 9
+    | (⟨6, _⟩, ⟨3, _⟩) => 3
+    | _ => 9999
+  }
+-- typing is hard. I do not want to deal with it rn
+
+def ex2i : I := {
+  Gr := exampleGraph2
+  start := ⟨1, by constructor ⟩
 }
 
+def anss2 : { a : (A ex2i) // a = MyMapcode.f ex2i } := MyMapcode.runWithProof ex2i
 
-
-def setgen (F : (X i) → (X i)) (y : X i) : Finset (X i) :=
-  if h : y = F y then {y}
-  else {y} ∪ setgen F (F y)
-  termination_by (iσi y)
-  decreasing_by
-    simp
-    apply iwfi
+#eval anss2.val.distances ⟨2, by constructor ⟩
