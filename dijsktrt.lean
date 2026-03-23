@@ -254,24 +254,6 @@ def MyMapcode : Mapcode (I) (A i) (X i) := {
   wf := iwfi
   invariant := iinvarianti
 }
---def generate
-/-
-def exampleGraph : Graph := {
-  V := {1,2,3,4,5,6}
-  E := {
-    ⟨(1,4), by constructor <;> simp⟩,
-    ⟨(1,2), by constructor <;> simp⟩,
-    ⟨(2,4), by constructor <;> simp⟩,
-    ⟨(2,5), by constructor <;> simp⟩,
-    ⟨(4,6), by constructor <;> simp⟩,
-    ⟨(4,5), by constructor <;> simp⟩,
-    ⟨(5,6), by constructor <;> simp⟩,
-    ⟨(6,3), by constructor <;> simp⟩,
-    ⟨(5,3), by constructor <;> simp⟩
-    }
-  wt := fun _ => 1
-}
- -/
 
 def exampleGraph : Graph := {
   V := {1,2,3,4}
@@ -289,7 +271,6 @@ def examplei : I := {
   Gr := exampleGraph
   start := ⟨1, by constructor ⟩
 }
---def generateMapCode (iii : I) : Mapcode (I) (A i) (X i) :=
 
 def anss : { a : (A examplei) // a = MyMapcode.f examplei } := MyMapcode.runWithProof examplei
 
@@ -303,7 +284,8 @@ def anson : ℕ := anss.val.distances ⟨2, by constructor <;> constructor ⟩
 
 def exampleGraph2 : Graph := {
   V := {1,2,3,4,5,6}
-c
+  E := {
+    ⟨(1,4), by constructor <;> simp⟩,
     ⟨(1,2), by constructor <;> simp⟩,
     ⟨(2,4), by constructor <;> simp⟩,
     ⟨(2,5), by constructor <;> simp⟩,
@@ -315,28 +297,28 @@ c
     }
   wt := fun p =>
     match p with
-    | (⟨1, by simp⟩, ⟨2, by simp⟩) => 2
-    | (⟨1, _⟩, ⟨4, _⟩) => 8
-    | (⟨2, _⟩, ⟨4, _⟩) => 5
-    | (⟨2, _⟩, ⟨5, _⟩) => 6
-    | (⟨4, _⟩, ⟨5, _⟩) => 3
-    | (⟨4, _⟩, ⟨6, _⟩) => 2
-    | (⟨5, _⟩, ⟨6, _⟩) => 1
-    | (⟨3, _⟩, ⟨5, _⟩) => 9
-    | (⟨3, _⟩, ⟨6, _⟩) => 3
-
-    | (⟨2, _⟩, ⟨1, _⟩) => 2
-    | (⟨4, _⟩, ⟨1, _⟩) => 8
-    | (⟨4, _⟩, ⟨2, _⟩) => 5
-    | (⟨5, _⟩, ⟨2, _⟩) => 6
-    | (⟨5, _⟩, ⟨4, _⟩) => 3
-    | (⟨6, _⟩, ⟨4, _⟩) => 2
-    | (⟨6, _⟩, ⟨5, _⟩) => 1
-    | (⟨5, _⟩, ⟨3, _⟩) => 9
-    | (⟨6, _⟩, ⟨3, _⟩) => 3
-    | _ => 9999
+    | (⟨v,_⟩, ⟨w,_⟩) =>
+        match (v,w) with
+        | (1,2) => 2
+        | (1,4) => 8
+        | (2,4) => 5
+        | (2,5) => 6
+        | (4,5) => 3
+        | (4,6) => 2
+        | (5,6) => 1
+        | (3,5) => 9
+        | (3,6) => 3
+        | (2,1) => 2
+        | (4,1) => 8
+        | (4,2) => 5
+        | (5,2) => 6
+        | (5,4) => 3
+        | (6,4) => 2
+        | (6,5) => 1
+        | (5,3) => 9
+        | (6,3) => 3
+        | _ => 9999
   }
--- typing is hard. I do not want to deal with it rn
 
 def ex2i : I := {
   Gr := exampleGraph2
@@ -345,4 +327,7 @@ def ex2i : I := {
 
 def anss2 : { a : (A ex2i) // a = MyMapcode.f ex2i } := MyMapcode.runWithProof ex2i
 
-#eval anss2.val.distances ⟨2, by constructor ⟩
+#eval anss2.val.distances ⟨3, by constructor <;> constructor <;> constructor ⟩
+--#eval anss2.val.distances ex2i.Gr.V
+
+--#eval anss2.val.distances ⟨3, by simp [constructor] ⟩
