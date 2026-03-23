@@ -95,6 +95,7 @@ theorem arr_in_tree : ∀ (a : List ℕ) (n : ℕ) , a ∈ htree a n := by
   refine Or.symm (Or.inr ?_)
   exact Finset.mem_singleton.mpr rfl
   -- `apply?` tactic carried me all the way
+/-
 theorem arr_child_in_tree_if_arr_in_tree : ∀ (a arr : List ℕ) (n : ℕ) , arr ∈ htree a n → (h_l arr) ∈ htree a (n + 1) ∧ (h_r arr) ∈ htree a (n + 1) := by
   intro a arr n harr
   constructor
@@ -105,6 +106,11 @@ theorem arr_child_in_tree_if_arr_in_tree : ∀ (a arr : List ℕ) (n : ℕ) , ar
   apply Or.inr
   apply Or.inl
   unfold htree
+
+ -/
+
+theorem left_child_in_tree_if_arr_in_tree : ∀ (a arr : List ℕ) (n : ℕ) , arr ∈ htree a n → (h_l arr) ∈ htree a (n + 1) := by
+  sorry
 
 #eval do
   let x := htree [1,2,3,4] 1
@@ -142,7 +148,6 @@ def isSorted (l : List ℕ) : Prop :=
 
 --def isSorted2 (l : List ℕ) : Prop :=
 
-def SortedList := {arr : List ℕ // isSorted arr}
 
 theorem tail_sorted (arr : List ℕ) : isSorted arr → isSorted (arr.tail) := by
   intro harr
@@ -162,19 +167,143 @@ theorem tail_sorted (arr : List ℕ) : isSorted arr → isSorted (arr.tail) := b
 def emlis : List ℕ := []
 #eval emlis.tail
 
-def SortedListTail (arr : SortedList) : SortedList := {
-  val := arr.val.tail
-  property := tail_sorted arr.val arr.property
-}
 
 
-def foo (la : SortedList) (lb : SortedList) : List ℕ :=
-  match la.val with
-    | [] => lb.val
-    | a :: as => match lb.val with
-      | [] => la.val
-      | b :: bs => if a ≤ b then (a :: (foo (⟨as, tail_sorted (a::as) la.property ⟩ ) lb)) else (b :: foo la (SortedListTail lb))
-  termination_by la.val.length + lb.val.length
-  decreasing_by
-    simp_wf
+/-
+def foo (la : List ℕ) (lb : List ℕ) : List ℕ :=
+  match la with
+    | [] => lb
+    | a_num :: atail => match lb with
+      | [] => la
+      | b_num :: btail => if a_num ≤ b_num then (a_num :: (foo atail lb)) else (b_num :: foo la btail)
+  termination_by la.length + lb.length
+     -/
     --apply List.length_tail_less
+def foo (la : List ℕ) (lb : List ℕ) : List ℕ :=
+  match la, lb with
+  | [], _ => lb
+  | _, [] => la
+  | a :: as, b :: bs =>
+    if a ≤ b then
+      a :: foo as (b :: bs) -- 'as' is shorter than 'a::as'
+    else
+      b :: foo (a :: as) bs -- 'bs' is shorter than 'b::bs'
+
+
+example (h1 : False) : 1=2 := by
+  exact False.elim h1
+
+theorem hfoo (la : List ℕ) (hla : isSorted la) (lb : List ℕ) (hlb : isSorted lb) : isSorted (foo la lb) := by
+  unfold isSorted
+  by_cases hasum : (foo la lb) = []
+  simp [hasum]
+  split
+  rename_i ld hh
+  exact False.elim (hasum hh)
+  rename_i xx xs dd
+  sorry
+
+theorem hfoo2 (la : List ℕ) (hla : isSorted la) (lb : List ℕ) (hlb : isSorted lb) : isSorted (foo la lb) := by
+  induction la
+  unfold foo
+  simp
+  exact hlb
+  rename_i a as tail_ih
+  unfold isSorted at hla
+  have fooaslb_sorted := tail_ih hla.left
+  induction lb
+  unfold foo
+  unfold isSorted
+  exact hla
+  rename_i b bs bail_ih
+  --unfold isSorted at hlb
+  have := hlb.left
+  apply bail_ih at this
+  have : isSorted (foo as (b :: bs)) → isSorted (foo as bs) := by
+    intro hnow
+    unfold foo at hnow
+
+    sorry
+
+  sorry
+
+
+theorem hfoo3 (la : List ℕ) (hla : isSorted la) (lb : List ℕ) (hlb : isSorted lb) : isSorted (foo la lb) := by
+  induction la
+  unfold foo
+  simp
+  exact hlb
+  rename_i a as tail_ih
+  unfold isSorted at hla
+  have fooaslb_sorted := tail_ih hla.left
+  unfold foo
+  /-
+  cases a::as
+  simp
+  exact hlb
+  -/
+  cases lb
+  simp
+  exact hla
+  simp
+  rename_i b bs
+
+  split_ifs
+  rename_i hcond
+  unfold isSorted
+  constructor
+  exact fooaslb_sorted
+  -- `x` either is in `as` or in `b::bs`
+  -- case 1 , we have `a ≤ x` as `a::as` is sorted
+  -- case 2 , we can show `b ≤ x` which via transitivity with  `a ≤ b` , we get `a ≤ x`
+  sorry
+
+  rename_i hcond
+  unfold isSorted
+  constructor
+
+  induction bs
+  unfold foo
+  exact hla
+  rename_i b' b's btail_ih
+
+  sorry
+
+
+
+  sorry
+  --unfold foo
+
+  /-
+  cases as
+  simp
+  constructor
+  exact hcond
+  intro x hx
+  have : b ≤ x := hlb.right x hx
+  exact Nat.le_trans hcond this
+  simp
+  rename_i aa aas
+  have : a ≤ aa := by
+    have yo2 : aa ∈ aa::aas := List.mem_cons_self aa aas
+    exact hla.right aa yo2 -/
+
+
+
+
+theorem hfoo5 (la lb : List ℕ) (hla : isSorted la) (hlb : isSorted lb) : isSorted (foo la lb) := by
+  induction la, lb using foo.induct
+  rename_i x
+  unfold foo
+  simp
+  exact hlb
+  rename_i x hx
+  unfold foo
+  simp
+  exact hla
+  rename_i a as b bs h ih1
+  unfold foo
+
+  sorry
+
+  sorry
